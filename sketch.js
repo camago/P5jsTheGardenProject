@@ -8,30 +8,37 @@ let coins = 100;
 let gameRunning = true;
 let gameMessage = '';
 let daisyStats = ["🌼", 2500, 5000, 20, true];
-let sunflowerStats = ["🌻", 4000, 6000, 50, false];
-let tulipStats = ["🌷", 3000, 4000, 35, false];
+let sunflowerStats = ["🌻", 4000, 7000, 50, false];
+let tulipStats = ["🌷", 3000, 4500, 35, false];
+let cactusStats = ["🌵", 5000, 10000, 90, false];
 let level = 1;
-let plantIcons = ["🌼"]
+let plantIcons = ["🌼"];
 let startTime = null;
 let totalDuration = 2 * 60 * 1000; 
+let bonusMultiplier = 1;
 // Storm random time, storm done, storm done time, storm message
-let storm = [Math.floor(Math.random() * (105000 - 5000 + 1)) + 5000, false, null, false];
-let investor = [Math.floor(Math.random() * (105000 - 5000 + 1)) + 5000, false, null, false];
-let theives = [Math.floor(Math.random() * (105000 - 5000 + 1)) + 5000, false, null, false];
+let storm = [Math.floor(Math.random() * 105000) + 5000, false, null, false];
+let investor = [Math.floor(Math.random() * 105000) + 5000, false, null, false];
+let thieves = [Math.floor(Math.random() * 105000) + 5000, false, null, false];
+let bonus = [Math.floor(Math.random() * 105000) + 5000, false, null, false];
 let instructionsShown = false;
 let disease = [null, false, false];
 let textShowing = false;
 function draw() {
   if (!instructionsShown) {
-    textSize(20)
+    textSize(40)
     fill("white");
     rect(0, 0, 600, 600);
     fill("black");
-    text("How to play", 10, 50)
-    text("Move the bee using WASD keys", 10, 75)
-    text("Click the number 2 to plant a daisy and 1 to harvest", 10, 100)
-    text("Unlocking new plant = more numbers you can use", 10, 125)
-    text("Press p to play", 10, 150)
+    text("The Garden Bee Game", 10, 50)
+    textSize(20)
+    text("How to play", 10, 100)
+    text("Move the bee using WASD keys", 10, 125)
+    text("Click the number 1 to harvest, and other numbers to plant", 10, 150)
+    text("The number to plant each plant is listed in the flowerbed", 10, 175)
+    text("Unlocking a new plant = more numbers you can use", 10, 200)
+    textSize(30)
+    text("Press p to play", 10, 250)
     return;
   }
   if (gameRunning == false) {
@@ -51,13 +58,13 @@ function draw() {
       startTime = new Date();
     }
     let currentTime = new Date();// 5 minutes in milliseconds
-  let timeDifference = currentTime - startTime; // Time elapsed in milliseconds
-  let timeRemaining = totalDuration - timeDifference;
-  if (timeRemaining < 0) {
-    timeRemaining = 0;
-    gameRunning = false;
-    gameMessage = 'Your game has ended'
-  }
+    let timeDifference = currentTime - startTime; // Time elapsed in milliseconds
+    let timeRemaining = totalDuration - timeDifference;
+    if (timeRemaining < 0) {
+      timeRemaining = 0;
+      gameRunning = false;
+      gameMessage = 'Your game has ended'
+    }
 
   let minutes = Math.floor(timeRemaining / (60 * 1000)); // Calculate remaining minutes
   let seconds = Math.floor((timeRemaining % (60 * 1000)) / 1000); // Calculate remaining seconds
@@ -141,6 +148,7 @@ function draw() {
   strokeWeight(0);
   fill("black");
   text("🪙" + coins, 10, 50)
+  text("Level: " + level, 250, 50)
   text("Time: " + minutes + ":" + seconds, 450, 50)
   if (storm[1] == false) {
       if (storm[0] > timeRemaining) {
@@ -161,7 +169,18 @@ function draw() {
         thieves[1] = true;
         thieves[3] = true;
         thieves[2] = new Date();
-        coins = Math.floor(coins * 0.75);
+        coins = Math.floor(coins * 0.25);
+        textShowing = true;
+      }
+    }
+  }
+  if (bonus[1] == false) {
+    if (bonus[0] > timeRemaining) {
+      if (!textShowing) {
+        bonus[1] = true;
+        bonus[3] = true;
+        bonus[2] = new Date();
+        bonusMultiplier = 2;
         textShowing = true;
       }
   }
@@ -206,37 +225,64 @@ function draw() {
     } else {
       textShowing = true;
       fill("black");
-      text("Theives broke into your beehive and stole your money", 20, 100);
+      text("Thieves broke into your beehive and stole", 20, 100);
       text("You have lost 75% of your coins", 20, 150);
     }
   }
-  if (disease[1] == true) {
-    if ((currentTime - disease[0]) > 5000) {
-      disease[1] = false;
+  if (bonus[3] == true) {
+    if ((currentTime - bonus[2]) > 5000) {
+      bonus[3] = false;
+      bonusMultiplier = 1;
       textShowing = false;
     } else {
       textShowing = true;
       fill("black");
-      text("You left too many dead flowers out", 100, 100);
-      text("You have lost half your coins", 100, 150);
+      text("Coin multiplier for 5 seconds!", 20, 100);
+      text("Any coins you harvest is sold at x2 its value", 20, 150);
     }
   }
-
-}
-}
+  if (disease[1] == true) {
+      if ((currentTime - disease[0]) > 5000) {
+        disease[1] = false;
+        textShowing = false;
+      } else {
+        textShowing = true;
+        fill("black");
+        text("You left too many dead flowers out", 100, 100);
+        text("You have lost half your coins", 100, 150);
+      }
+  }
+  }
+  }
 function checkFlowerStatus(){
   if (coins > 150) {
     if (!tulipStats[4]){
       tulipStats[4] = true;
       plantIcons.push(tulipStats[0]);
+      if (level < 2) {
+        level = 2;
+      }
     }
-  } if (coins > 200) {
+  } 
+  if (coins > 250) {
     if (!sunflowerStats[4]){
       sunflowerStats[4] = true;
       plantIcons.push(sunflowerStats[0]);
+      if (level < 3) {
+        level = 2;
+      }
     }
   }
+  if (coins > 500) {
+    if (!cactusStats[4]){
+      cactusStats[4] = true;
+      plantIcons.push(cactusStats[0]);
+      if (level < 3) {
+        level = 4;
+      }
+    }
   }
+}
 function keyPressed() {
   let plantPosition = -1;
   let plantX = beeX;
@@ -254,7 +300,7 @@ function keyPressed() {
       if (plants[plantPosition][0] == "🥀") {
         plants.splice(plantPosition, 1);
       } else if (plants[plantPosition][0] != "🌱") {
-        coins += plants[plantPosition][8];
+        coins += plants[plantPosition][8] * bonusMultiplier;
         plants.splice(plantPosition, 1);
       }
     } 
@@ -303,6 +349,22 @@ function keyPressed() {
         let length = plants.length;
         let time = new Date();
         plants[length] = (["🌱", plantX, plantY, time, "sunflower", sunflowerStats[0], sunflowerStats[1], sunflowerStats[2], sunflowerStats[3]]);
+        coins -= 10;
+      }
+    }
+  } else if (key === '5') {
+    if (cactusStats[4]) {
+      for (let i = 0; i < plants.length; i++) {
+        if (plants[i][1] == plantX){
+          if (plants[i][2] == plantY){
+            plantPosition = i;
+          }
+        }
+      }
+      if (plantPosition == -1){
+        let length = plants.length;
+        let time = new Date();
+        plants[length] = (["🌱", plantX, plantY, time, "cactus", cactusStats[0], cactusStats[1], cactusStats[2], cactusStats[3]]);
         coins -= 10;
       }
     }
